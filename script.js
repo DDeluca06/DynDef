@@ -1,3 +1,10 @@
+// Global variable to store sensor data
+let sensors = [
+  { id: 1, type: 'Smoke', status: 'Online', delay: 5 },
+  { id: 2, type: 'Fire', status: 'Disabled', delay: 3 },
+  { id: 3, type: 'Heat', status: 'Online', delay: 7 }
+];
+
 // Get time for element
 function updateRecentActivityTime() {
     const now = new Date(); // Get todaythe date right now
