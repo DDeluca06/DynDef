@@ -1,9 +1,20 @@
+// Function to load sensors from local storage
+function loadSensorsFromStorage() {
+  const storedSensors = localStorage.getItem('sensors');
+  return storedSensors ? JSON.parse(storedSensors) : [
+    { id: 1, type: 'Smoke', status: 'Online', delay: 5 },
+    { id: 2, type: 'Fire', status: 'Disabled', delay: 3 },
+    { id: 3, type: 'Heat', status: 'Online', delay: 7 }
+  ];
+}
+
 // Global variable to store sensor data
-let sensors = [
-  { id: 1, type: 'Smoke', status: 'Online', delay: 5 },
-  { id: 2, type: 'Fire', status: 'Disabled', delay: 3 },
-  { id: 3, type: 'Heat', status: 'Online', delay: 7 }
-];
+let sensors = loadSensorsFromStorage();
+
+// Function to save sensors to local storage
+function saveSensorsToStorage() {
+  localStorage.setItem('sensors', JSON.stringify(sensors));
+}
 
 // Get time for element
 function updateRecentActivityTime() {

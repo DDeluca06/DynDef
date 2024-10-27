@@ -1,9 +1,28 @@
+// Please, please, NEVER let me do something like this again. This BLOWS. It SUCKS. I did NOT have fun. 
 document.addEventListener('DOMContentLoaded', () => {
   const contentArea = document.querySelector('.content');
 
+  // Load the sensors from
+  function loadSensorsFromStorage() {
+    const storedSensors = localStorage.getItem('sensors');
+    return storedSensors ? JSON.parse(storedSensors) : [
+      { id: 1, type: 'Smoke', status: 'Online', delay: 5 },
+      { id: 2, type: 'Fire', status: 'Disabled', delay: 3 },
+      { id: 3, type: 'Heat', status: 'Online', delay: 7 }
+    ];
+  }
+// Global variable to store sensor data
+let sensors = loadSensorsFromStorage();
+
+// Function to save sensors to local storage
+function saveSensorsToStorage() {
+  localStorage.setItem('sensors', JSON.stringify(sensors));
+}
+
   // Content for different sections
-  const sections = {
-    Dashboard: `
+// Content for different sections
+const sections = {
+  Dashboard: `
     <div class="main-content">
       <div class="info-box">
         <h3>Sensor Status</h3>
@@ -22,23 +41,24 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
     </div>
   `,
-    Sensors: `
-      <div class="main-content">
-        <div class="info-box">
-          <h3>Sensor Details</h3>
-          <p>Total Sensors: <span id="totalSensors">3</span></p>
-          <p>Active Sensors: <span id="activeSensors">1</span></p>
-          <p>Inactive Sensors: <span id="inactiveSensors">2</span></p>
-        </div>
+  Sensors: `
+    <div class="main-content">
+      <div class="info-box">
+        <h3>Sensor Details</h3>
+        <p>Total Sensors: <span id="totalSensors"></span></p>
+        <p>Active Sensors: <span id="activeSensors"></span></p>
+        <p>Inactive Sensors: <span id="inactiveSensors"></span></p>
       </div>
-      <div class="sidebar">
-        <div class="info-box">
-          <h3>Sensor Actions</h3>
-          <button id="addSensor">Add New Sensor</button>
-          <button id="calibrateSensors">Calibrate Sensors</button>
-        </div>
+      <div id="sensorList"></div>
+    </div>
+    <div class="sidebar">
+      <div class="info-box">
+        <h3>Sensor Actions</h3>
+        <button id="addSensor">Add New Sensor</button>
+        <button id="calibrateSensors">Calibrate Sensors</button>
       </div>
-    `,
+    </div>
+  `,
     Logs: `
       <div class="main-content">
         <div class="info-box">
@@ -144,7 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
         break;
     }
   }
-// Update when we click into new tabs
+// Update when we click into new tabs -- this also probably sucks.
   function updateSectionContent(section) {
     switch (section) {
       case 'Dashboard':
@@ -161,18 +181,20 @@ document.addEventListener('DOMContentLoaded', () => {
         break;
     }
   }
-// Function to restart all sensors
+// Function to restart all sensors, which just sets them to online.
 function restartSensors() {
   console.log('Restarting sensors...');
   sensors = sensors.map(sensor => ({ ...sensor, status: 'Online' }));
+  saveSensorsToStorage();
   updateDashboard();
 }
 
-// Function to simulate server reset
+// Function to simulate server reset, this does nothing. You're welcome.
 function resetServer() {
   console.log('Resetting server...');
   setTimeout(() => {
     sensors = sensors.map(sensor => ({ ...sensor, status: 'Online' }));
+    saveSensorsToStorage();
     updateDashboard();
     alert('Server has been reset successfully.');
   }, 2000);
@@ -186,18 +208,29 @@ function addSensor() {
   
   if (type && !isNaN(delay)) {
     const newSensor = {
-      id: sensors.length + 1,
+      id: Date.now(), // Use timestamp as a unique ID
       type: type,
       status: 'Online',
       delay: delay
     };
     sensors.push(newSensor);
+    saveSensorsToStorage();
     updateSensors();
     updateDashboard();
     alert(`New ${type} sensor added with ${delay}s delay.`);
   } else {
     alert('Invalid input. Sensor not added.');
   }
+}
+
+// Function to delete a sensor.
+function deleteSensor(id) {
+  console.log('Deleting sensor...');
+  sensors = sensors.filter(sensor => sensor.id !== id);
+  saveSensorsToStorage();
+  updateSensors();
+  updateDashboard();
+  alert('Sensor deleted successfully.');
 }
 
 // Function to calibrate all online sensors
@@ -211,6 +244,7 @@ function calibrateSensors() {
     }
     return sensor;
   });
+  saveSensorsToStorage();
   updateSensors();
   updateDashboard();
   alert(`${calibratedCount} sensors have been calibrated.`);
@@ -222,7 +256,7 @@ function exportLogs() {
   const logs = sensors.map(sensor => 
     `Sensor ${sensor.id} (${sensor.type}): Status - ${sensor.status}, Delay - ${sensor.delay}s`
   ).join('\n');
-  
+  // I... I have no idea why I did this.
   const blob = new Blob([logs], { type: 'text/plain' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -311,41 +345,25 @@ function updateSensors() {
   document.getElementById('inactiveSensors').textContent = inactiveSensors;
   
   // Update sensor list display
-  const sensorList = document.getElementById('sensorList') || document.createElement('div');
-  sensorList.id = 'sensorList';
+  const sensorList = document.getElementById('sensorList');
   sensorList.innerHTML = `
     <h3>Sensor List</h3>
     ${sensors.map(sensor => `
-      <p>ID: ${sensor.id}, Type: ${sensor.type}, Status: ${sensor.status}, Delay: ${sensor.delay}s</p>
+      <div>
+        <p>ID: ${sensor.id}, Type: ${sensor.type}, Status: ${sensor.status}, Delay: ${sensor.delay}s</p>
+        <button class="delete-sensor" data-id="${sensor.id}">Delete Sensor</button>
+      </div>
     `).join('')}
   `;
-  
-  const mainContent = document.querySelector('.main-content');
-  if (!document.getElementById('sensorList')) {
-    mainContent.appendChild(sensorList);
-  }
-}
 
-// Function to update the logs display
-function updateLogs() {
-  const systemLogs = document.getElementById('systemLogs');
-  systemLogs.innerHTML = `
-    <p>${new Date().toLocaleString()} - System logs updated</p>
-    ${sensors.map(sensor => `
-      <p>Sensor ${sensor.id} (${sensor.type}): Status - ${sensor.status}, Delay - ${sensor.delay}s</p>
-    `).join('')}
-  `;
-}
-
-// Function to update the settings display
-function updateSettingsDisplay() {
-  const email = document.getElementById('notificationEmail').textContent;
-  const threshold = document.getElementById('alertThreshold').textContent;
-  const maintenance = document.getElementById('maintenanceMode').textContent;
-
-  document.getElementById('notificationEmail').textContent = email;
-  document.getElementById('alertThreshold').textContent = threshold;
-  document.getElementById('maintenanceMode').textContent = maintenance;
+  // Add event listeners for delete buttons
+  const deleteButtons = sensorList.querySelectorAll('.delete-sensor');
+  deleteButtons.forEach(button => {
+    button.addEventListener('click', (e) => {
+      const id = parseInt(e.target.getAttribute('data-id'));
+      deleteSensor(id);
+    });
+  });
 }
 
 // Function to handle button clicks
@@ -393,6 +411,46 @@ function updateContent(section) {
   attachEventListeners();
   updateSectionContent(section);
 }
+
+// Function to update section-specific content
+function updateSectionContent(section) {
+  switch (section) {
+    case 'Dashboard':
+      updateDashboard();
+      break;
+    case 'Sensors':
+      updateSensors();
+      break;
+    case 'Logs':
+      updateLogs();
+      break;
+    case 'Settings':
+      updateSettingsDisplay();
+      break;
+  }
+}
+
+// Function to attach event listeners
+function attachEventListeners() {
+  const menuItems = document.querySelectorAll('.menu-item');
+  menuItems.forEach(item => {
+    item.addEventListener('click', (e) => {
+      const section = e.target.getAttribute('data-section');
+      updateContent(section);
+    });
+  });
+
+  const buttons = document.querySelectorAll('button');
+  buttons.forEach(button => {
+    button.addEventListener('click', handleButtonClick);
+  });
+}
+
+// Initialize the application
+document.addEventListener('DOMContentLoaded', () => {
+  const contentArea = document.querySelector('.content');
+  updateContent('Dashboard');
+});
 
 // Function to update section-specific content
 function updateSectionContent(section) {
