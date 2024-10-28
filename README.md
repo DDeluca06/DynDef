@@ -25,6 +25,22 @@ This repository hosts the web interface files for Dynasty Defense, complete with
 3. **Configuration**:
    - Modify `script.js` and `validation.js` to adjust filtering rules as needed.
    - Update `sectioning.js` as necessary in your specific setup.
+## Security Concerns/Flaws
+Hoo boy, where do we begin.
+  - Everything is in `sectioning.js`. Everything. This is 400 lines long.
+  - No cookie/login checking, you can go straight to main.html.
+  - The logs function is so complicated it actually doesn't work.
+  - It's all in local storage; easily interceptible.
+  - Creating a const variable with the entire HTML setup is probably bad.
+  - Why are there 6 functions to get a date?
+  - Many, many more.
+## Future Enhancements
+  - Seperation of JavaScript
+  - More manual review, much more
+  - Full-width design
+  - More emphesis on functionality
+      - Time-budgeting
+  - More user-control
 ## Contributing
 - Contributions are welcome! Please create a pull request with detailed explanations of changes.
 ## Licensing
